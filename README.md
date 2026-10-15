@@ -155,7 +155,7 @@ python -m pytest -q
 
 ## EDA: evidence behind the preprocessing
 
-The plots below are **exported from the executed notebook** (`notebooks/titanic_eda.ipynb`), using the 712-passenger development subset of Kaggle `train.csv` (seed 42). They are real notebook outputs, **not illustrative charts**.
+The plots below are **exported from the executed notebook** (`titanic_eda.ipynb`), using the 712-passenger development subset of Kaggle `train.csv` (seed 42). They are real notebook outputs, **not illustrative charts**.
 
 ### 1. Descriptive statistics: mean, median and variability
 
