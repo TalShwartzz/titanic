@@ -1,0 +1,17 @@
+# Kaggle source data and generated predictions
+/data/train.csv
+/artifacts/*
+!/artifacts/.gitkeep
+# Credentials and environments
+.kaggle/
+kaggle.json
+.env
+.venv/
+venv/
+# Python/Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+.DS_Store

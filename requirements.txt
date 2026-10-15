@@ -1,0 +1,14 @@
+# Tested with Python 3.11–3.12, CPU execution supported
+numpy>=1.26,<3
+pandas>=2.1,<3
+scikit-learn>=1.4,<2
+torch>=2.2,<3
+kaggle>=1.6,<3
+joblib>=1.3,<2
+streamlit>=1.36,<2
+plotly>=5.20,<7
+matplotlib>=3.8,<4
+seaborn>=0.13,<1
+jupyterlab>=4.1,<5
+nbformat>=5.9,<6
+pytest>=8,<10
