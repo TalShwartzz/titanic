@@ -1,191 +1,122 @@
-# 🚢 Titanic Survival Intelligence — ELTA Data Science Assignment
+# Titanic Survival Analysis — Exploratory Data Analysis & Feature Engineering
 
-End-to-end, reproducible **PyTorch binary classification pipeline** using **only the official Kaggle Titanic competition `train.csv`**, plus an exploratory Jupyter notebook and a Streamlit dashboard for held-out evaluation and CSV inference.
+A reproducible exploratory data analysis (EDA) of the [Kaggle Titanic dataset](https://www.kaggle.com/competitions/titanic/data), focused on **data quality, statistical exploration, feature engineering, and leakage-safe preprocessing** for a passenger-survival classification task.
 
-**Important:** No Kaggle `test.csv` or `gender_submission.csv` is downloaded, used, evaluated, or submitted. The supplied `example_inference.csv` contains *invented illustrative passengers* and is never used for training or evaluation.
+This repository documents the **EDA notebook**. Its logistic-regression experiments are diagnostic feature-ablation studies, **not** the final PyTorch training application.
 
-## Project contents
+## Project goals
 
-```text
-elta_titanic_solution/
-├── train.py                       # Standalone training entry point
-├── ds_app.py                      # Streamlit evaluation and inference app
-├── notebooks/
-│   └── titanic_eda.ipynb          # Detailed EDA and data-quality investigation
-├── src/
-│   ├── data.py                    # Kaggle-only train.csv download and validation
-│   ├── features.py                # Feature engineering + training-fitted preprocessing
-│   ├── model.py                   # PyTorch MLP (BCEWithLogitsLoss)
-│   └── evaluation.py              # Metrics, saved model loading, inference
-├── tests/                         # End-to-end and unit tests (synthetic fixtures)
-├── data/
-│   ├── README.md                  # Kaggle source attribution
-│   └── example_inference.csv      # Small, illustrative unlabeled inference file
-├── artifacts/                     # Generated when train.py runs, not checked into git
-├── .streamlit/config.toml
-├── requirements.txt
-└── README.md
-```
+- Examine feature types, missing values, duplicates, and data integrity.
+- Summarize numerical variables with mean, median, standard deviation, percentiles, IQR, and skewness.
+- Study survival rates across passenger sex, class, age, fare, family size, and embarkation port.
+- Investigate outliers, feature correlations, and redundancy.
+- Engineer additional predictive features and test their value using stratified cross-validation.
+- Demonstrate preprocessing that avoids fitting statistics on validation data.
 
-## 1. Setup
+## Dataset and evaluation setup
 
-Use Python **3.11 or 3.12** (with PyTorch-compatible binaries). From a terminal in the project root:
+The analysis uses **only `train.csv`** from Kaggle's Titanic competition (891 labeled passengers). It **does not use** Kaggle's `test.csv` or `gender_submission.csv`.
 
-**Windows PowerShell:**
+| Setting | Value |
+| --- | --- |
+| Prediction target | `Survived` (0 = did not survive; 1 = survived) |
+| Original dataset | 891 passengers |
+| Development / EDA partition | 712 passengers (80%) |
+| Held-out validation partition | 179 passengers (20%) |
+| Split | Stratified by `Survived` |
+| Random seed | `42` |
+| Feature-ablation evaluation | 5-fold stratified cross-validation on development data only |
 
-```powershell
-py -3.12 -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+**Data leakage precaution:** Preprocessing is fitted separately within each training fold during cross-validation. The held-out 20% is not used to score feature-ablation candidates. The EDA results below refer to the 712-passenger development partition unless otherwise stated.
 
-**macOS/Linux:**
+## Key EDA findings
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+| Observation | Result (development partition) | Implication |
+| --- | ---: | --- |
+| Overall survival rate | 38.34% | Report F1 and ROC AUC alongside accuracy |
+| Missing `Age` | 19.24% | Median imputation; preserve missingness indicator |
+| Missing `Cabin` | 77.53% | Exclude raw `Cabin` from the initial feature set |
+| Missing `Embarked` | 0.28% | Handle the missing category explicitly |
+| Duplicate rows / passenger IDs | 0 / 0 | No duplicate removal required |
+| Median fare | 14.45 | Mean alone does not represent a typical fare |
+| Raw fare skewness | 4.65 | Investigate a logarithmic fare transformation |
+| `LogFare` skewness | 0.31 | Log transform substantially reduces right skew |
 
-PyTorch installation differs by OS/GPU. The supplied pipeline runs on **CPU by default**; consult [PyTorch's installation selector](https://pytorch.org/get-started/locally/) if you prefer a CUDA build.
+Survival rates differ substantially across sex and passenger class, motivating an explicit `SexPclass` interaction feature. An IQR-based check flags some high fares; those observations are **not automatically dropped**, because expensive tickets may be legitimate.
 
-### Kaggle credentials
+EDA shows **associations**, not causal effects.
 
-1. Sign in to [Kaggle](https://www.kaggle.com/), open the [Titanic competition](https://www.kaggle.com/competitions/titanic/data), and accept any applicable rules.
-2. Configure the official **Kaggle API** using supported Kaggle credentials (for example, `~/.kaggle/kaggle.json` on macOS/Linux or `%USERPROFILE%\.kaggle\kaggle.json` on Windows, as applicable to your Kaggle account/API version). Alternatively configure the environment variables supported by your Kaggle client.
-3. Run `python train.py`. It uses the official Kaggle Python API to download **the single file `train.csv`** to `data/train.csv`. A previously downloaded file is reused on later runs.
+## Feature engineering
 
-Never commit API tokens or your `kaggle.json`. `.gitignore` excludes them.
+The notebook evaluates the original passenger attributes alongside these engineered variables:
 
-**No credentials?** Download **only** `train.csv` yourself from the [Kaggle Titanic data page](https://www.kaggle.com/competitions/titanic/data), save it as `data/train.csv`, and use the same training command. This manual alternative is for local access; the code's normal first-run route is a direct Kaggle API download.
+| Engineered feature | Definition / motivation |
+| --- | --- |
+| `FamilySize` | `SibSp + Parch + 1`; traveling group size |
+| `IsAlone` | Indicator that `FamilySize == 1` |
+| `FarePerPerson` | `Fare / FamilySize`; approximate normalized fare |
+| `Title` | Extract `Mr`, `Mrs`, `Miss`, `Master`, or `Rare` from passenger names |
+| `LogFare` | `log1p(Fare)` to compress the fare distribution |
+| `AgeMissing` | Indicator showing whether age is missing |
+| `SexPclass` | Combined sex and passenger-class category |
 
-## 2. Explore data in Jupyter
+The complete feature representation produces **29 model input columns** after numerical processing and one-hot encoding.
 
-```bash
-jupyter lab notebooks/titanic_eda.ipynb
-```
+### Preprocessing evaluated in the notebook
 
-Set `LOCAL_TRAIN_CSV` in the first code cell to the full path of your locally downloaded Kaggle `train.csv` (for example `r"C:\Users\YourUsername\Downloads\train.csv"`). Alternatively leave it blank and place the file at `data/train.csv` inside the project. The notebook does **not** download the data or require Kaggle credentials. Run **Run All** to cover schema/data quality, missingness, categorical survival differences, age/fare and family features, sex × passenger-class interactions, and data leakage safeguards. All plots are generated from actual Kaggle records during execution; no results are invented in the notebook.
+- **Numerical:** median imputation followed by `StandardScaler`.
+- **Categorical:** missing/unknown-category handling and `OneHotEncoder(handle_unknown="ignore")`.
+- **Validation:** the fitted transformations are reused on held-out data; no separate fitting is performed on validation rows.
 
-## 3. Train and evaluate
+## Feature-ablation results
 
-```bash
-python train.py
-```
+Five-fold stratified cross-validation of a **logistic-regression diagnostic baseline** on the 712 development passengers:
 
-Or customize a reproducible experiment:
+| Feature configuration | Mean ROC AUC | Standard deviation |
+| --- | ---: | ---: |
+| Original seven features | 0.8532 | 0.0242 |
+| + Family features | 0.8561 | 0.0241 |
+| + Title | 0.8684 | 0.0217 |
+| + LogFare | 0.8581 | 0.0278 |
+| + Sex × Pclass | 0.8607 | 0.0177 |
+| **All engineered features** | **0.8718** | 0.0229 |
 
-```bash
-python train.py --seed 42 --epochs 80 --val-size 0.20 --batch-size 64 --learning-rate 0.001
-```
+The full engineered set gives the highest **mean** ROC AUC in this diagnostic experiment. The differences between configurations are modest relative to fold-to-fold variation; these results do not prove that every feature is individually useful or that the same ranking will hold for a PyTorch model.
 
-If you've manually placed the official dataset elsewhere:
+## How to run
 
-```bash
-python train.py --data-path "C:/mydata/train.csv"
-```
+### Google Colab (simplest)
 
-`train.py` loads **only** the allowed training file, validates it, makes a **stratified 80/20 split**, fits preprocessing exclusively on the training partition, fits a logistic regression comparison model, and trains a compact MLP in PyTorch. The number of epochs is predetermined; it does not choose a checkpoint by optimizing the reported validation metrics. It computes final held-out metrics at **threshold = 0.50**.
+1. Download/open the repository's Titanic EDA `.ipynb` file in [Google Colab](https://colab.research.google.com/).
+2. Choose **Runtime → Run all**.
+3. When prompted, upload the **Kaggle `train.csv`** file from your computer.
 
-Generated files in `artifacts/`:
+Google Colab runs remotely, so a Windows path such as `C:\Users\...\train.csv` is not accessible to it. The notebook includes an upload fallback.
 
-| File | Role |
-|---|---|
-| `model.pt` | PyTorch weights as `state_dict` (not a serialized Python model object) |
-| `preprocessor.joblib` | Train-fitted imputers, scaler, categorical encoder |
-| `model_config.json` | Model architecture, split info, source hash, training settings |
-| `metrics.json` | Accuracy, precision, recall, F1, ROC AUC, AP and confusion matrices for both models |
-| `history.csv` | Epoch-by-epoch training and validation loss diagnostics |
-| `validation.csv` | **Held-out subset of Kaggle train.csv** with labels, saved after the split |
-| `validation_predictions.csv` | Held-out MLP predictions at default threshold |
-| `split_manifest.json` | Training/validation passenger IDs to audit disjointness |
-
-The exact numeric results depend on the genuine Kaggle source and the training environment. **No actual Titanic-trained checkpoint or score is bundled with this source repository.** Execute `python train.py` once to create both.
-
-## 4. Run Streamlit
+### Local Jupyter / PyCharm
 
 ```bash
-streamlit run ds_app.py
+git clone https://github.com/TalShwartzz/titanic.git
+cd titanic
+python -m pip install numpy pandas matplotlib seaborn scikit-learn ipython notebook ipykernel
+jupyter notebook
 ```
 
-The app provides:
+Open the Titanic EDA notebook and run all cells. Place `train.csv` next to the notebook or in a local `data/` folder, or update `LOCAL_TRAIN_CSV` in its first code cell. If the repository includes `requirements.txt`, you may instead install with `python -m pip install -r requirements.txt`.
 
-- **Held-out validation** (default): run inference anew on `artifacts/validation.csv`; show accuracy, precision, recall, F1, ROC AUC, confusion matrix, score distributions, ROC/PR curves, calibration diagnostics, and baseline comparison.
-- **Upload CSV**: predict from an uploaded `.csv` and evaluate if a complete binary `Survived` column is included.
-- **Local CSV path**: load a path such as `data/example_inference.csv` and show predictions even if no labels are present.
-- Interactive decision **threshold** for classification and downloadable `titanic_predictions.csv`.
+The dataset can be obtained from the [official Kaggle competition page](https://www.kaggle.com/competitions/titanic/data). The notebook does not require Kaggle's competition test set.
 
-**Inference CSV required columns:**
+## Notebook contents
 
-```text
-Pclass, Sex, Age, SibSp, Parch, Fare, Embarked
-```
+The notebook covers dataset integrity, descriptive and categorical statistics, missingness, class balance, survival-group comparisons, numerical distributions, outlier checks, feature engineering, redundancy and correlations, preprocessing validation, feature-ablation cross-validation, and evidence-based conclusions.
 
-`Name` is optional but recommended, because a passenger's title is an engineered feature. `PassengerId` is optional and is shown in downloaded predictions. `Survived` is optional and is **only** used for evaluation if present. Missing cells within expected columns are supported. Unseen categorical values are handled by the trained encoder. A missing required column raises a clear error instead of silently changing the schema.
+## Scope and limitations
 
-### Example inference file
+- This repository documents the exploratory analysis and diagnostic logistic-regression comparisons, **not a deployed inference application**.
+- Preprocessing choices are supported by the statistics, but downstream feature/model selection should be confirmed through additional validation.
+- Small differences in cross-validation scores may be sampling variation.
+- Historical passenger characteristics are correlated with survival; the results should not be interpreted as causal estimates.
 
-```text
-PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Fare,Embarked
-9001,1,"Example, Mrs. Alice",female,34,1,0,88.0,S
-9002,3,"Example, Mr. Bob",male,26,0,0,7.9,Q
-```
+---
 
-These are **fabricated sample inputs** only. Choose **Local CSV path** in Streamlit and enter `data/example_inference.csv` to test unlabeled inference after the real model is trained.
-
-## 5. Run automated tests
-
-```bash
-python -m pytest -q
-```
-
-Tests exercise feature extraction, required-column errors, separation between inputs and labels, saved model round-trip, reproducible disjoint split, labeled/unlabeled inference, and binary metrics. The fixtures use synthesized Titanic-*shaped* records so tests run offline without confusing them with the actual Kaggle competition data.
-
-## Architecture & methodological decisions
-
-```text
-Kaggle API: Titanic/train.csv
-              │
-      schema + label checks
-              │
-       stratified split
-          ┌───┴────────┐
-      80% train     20% validation (never used to fit preprocessing)
-          │              │
- feature engineering ────┘ (identical deterministic transforms)
-          │
- train-only median imputer / standard scaler / one-hot encoder
-          │
-   ┌──────┴──────────────────────────┐
-   │                                 │
- logistic regression            PyTorch MLP
-   baseline                       32 → 16 → 1
-   │                               │
-   └──────── validation metrics ───┘
-                                   │
-                   save weights + preprocessing + config
-                                   │
-                 Streamlit: infer / evaluate / export CSV
-```
-
-- **Why these features?** Passenger class, sex, age, family members, fare, port of embarkation, and derived `FamilySize`, `IsAlone`, `FarePerPerson`, `Title`. Raw `Ticket` and `Cabin` are omitted because of high cardinality and/or missingness; `PassengerId` is an identifier and `Survived` is the target.
-- **Why these imputations?** Median numerical imputation is resistant to extreme fares; categorical blanks are assigned a stable `Unknown` category. Scaling prevents fare magnitudes from dominating MLP optimization; one-hot encoding avoids imposing false order on categories.
-- **Why a simple MLP?** With approximately 900 rows, a 2-layer MLP (ReLU, dropout) has enough flexibility without a needlessly large deep-learning model. `BCEWithLogitsLoss` is numerically stable; AdamW handles optimization.
-- **Why logistic regression?** Its comparable scores provide a meaningful sanity check on whether extra neural-network complexity is justified.
-- **Why accuracy isn't enough?** Titanic has unequal survival classes. F1, recall, precision, ROC AUC, PR curves, error distribution and confusion matrix reveal different kinds of failures.
-- **Limitations:** A single 80/20 split gives noisy estimates on a small dataset. Fixed hyperparameters avoid explicitly selecting on validation, but findings should still be viewed as an estimate, not a definitive generalization guarantee. Changing the threshold in the UI is exploratory; results after selecting a threshold by looking at validation labels are no longer an unbiased final estimate. For further work, use stratified cross-validation and separate final holdout/test data **drawn exclusively from `train.csv`**, if the assignment permits it.
-
-### Reproducibility and trust
-
-The script stores its random seed, input CSV SHA-256, split IDs and pipeline definition alongside the checkpoint. It defaults to deterministic, CPU training. GPU/PyTorch versions may lead to minor numeric variation. `torch.load(..., weights_only=True)` loads only tensor weights; **joblib deserialization is still unsafe for untrusted files**, so use only artifacts you generated yourself. Do not share or commit Kaggle API credentials.
-
-## Suggested GitHub submission checklist
-
-1. Push project **source**, notebook, tests, example CSV and README.
-2. Run `python train.py`, `python -m pytest -q` and `streamlit run ds_app.py` locally before submitting.
-3. Capture screenshots of the notebook's EDA figures and Streamlit validation tab and include them under `assets/` if desired.
-4. Do not upload Kaggle credentials, Kaggle `test.csv`, or `gender_submission.csv`.
-
-This repository fulfills the **classification task** described in the provided ELTA assignment. If a separate task was omitted from the uploaded instructions, it is intentionally not invented here.
+**Dataset credit:** [Kaggle — Titanic: Machine Learning from Disaster](https://www.kaggle.com/competitions/titanic/data).
