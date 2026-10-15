@@ -2,7 +2,7 @@
 
 An end-to-end binary classification project for the **[Kaggle Titanic competition](https://www.kaggle.com/competitions/titanic/data)**. It combines an executed **exploratory data analysis (EDA) notebook**, statistically motivated feature engineering, **PyTorch** neural-network training, a logistic-regression baseline, and an interactive **Streamlit** evaluation/inference dashboard.
 
-**Dataset policy:** Only the labeled Kaggle `train.csv` is used. The competition's `test.csv` and `gender_submission.csv` are **not used**. The Kaggle data is not included in the repository.
+**Dataset policy:** Only the labeled Kaggle `train.csv` is used. The competition's `test.csv` and `gender_submission.csv` are **not used**. A local copy of `train.csv` can be kept in the project root or fetched from Kaggle with `--download`.
 
 ## Project overview
 
@@ -19,85 +19,139 @@ An end-to-end binary classification project for the **[Kaggle Titanic competitio
 
 ### Project structure
 
+The repository root contains the training script, Streamlit app and EDA notebook. The training and dashboard scripts also require the `src/` Python package; check that it has been uploaded to GitHub.
+
 ```text
 .
 ├── README.md
-├── train.py                         # PyTorch training and feature selection
-├── ds_app.py                        # Streamlit dashboard
 ├── requirements.txt
-├── notebooks/
-│   └── titanic_eda.ipynb           # Executed EDA and ablation notebook
+├── train.py                     # PyTorch training + CV model selection
+├── ds_app.py                    # Streamlit dashboard and CSV inference
+├── titanic_eda.ipynb            # Jupyter / Colab EDA notebook
+├── train.csv                    # Kaggle's labeled train.csv, if saved locally
 ├── src/
-│   ├── data.py                     # Kaggle download + validation
-│   ├── features.py                 # Shared feature engineering + preprocessing
-│   ├── model.py                    # PyTorch MLP
-│   └── evaluation.py               # Model loading, inference and metrics
-├── docs/
-│   └── eda/                        # Figures exported from the executed notebook
+│   ├── __init__.py
+│   ├── data.py
+│   ├── features.py
+│   ├── model.py
+│   └── evaluation.py
 ├── data/
-│   └── example_inference.csv       # Tiny inference demonstration (not evaluation data)
-├── artifacts/                      # Created by train.py; ignored by Git
-└── tests/                          # Automated checks
+│   └── example_inference.csv    # Small sample to upload in Streamlit
+├── docs/
+│   └── eda/                     # Plots shown below
+├── tests/                       # Unit and pipeline tests
+└── artifacts/                   # Written by train.py after training
 ```
 
-> If your GitHub repository currently contains only the notebook and README, **upload the remaining folders from the supplied project ZIP** before using the training and dashboard commands below. Saved model artifacts are generated locally and are not included in the repository.
+## Installation and running the project
 
-## Getting started
+### 1. Clone the repository
 
-**Python 3.11 or 3.12** is recommended.
+Install **Python 3.11 or 3.12** and Git, then open a terminal:
 
 ```bash
 git clone https://github.com/TalShwartzz/titanic.git
 cd titanic
+```
+
+All commands below should be run from the folder containing `train.py` and `ds_app.py`.
+
+### 2. Create a virtual environment and install requirements
+
+**Windows (PowerShell / PyCharm terminal):**
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Replace `py -3.12` with your installed Python 3.11 or 3.12 executable if needed. Using `.venv\Scripts\python.exe` explicitly avoids problems caused by mixing different Python installations.
+
+**macOS / Linux:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Get the official [`train.csv`](https://www.kaggle.com/competitions/titanic/data), then place it beside `train.py`:
+`requirements.txt` installs PyTorch, scikit-learn, pandas, Streamlit, plotting libraries, Jupyter, and the other project dependencies. **Do not commit your `.venv/` directory.**
+
+> In the examples below, `python` means the installed project environment. On Windows without activating the venv, replace `python` by `.\.venv\Scripts\python.exe` in each command.
+
+### 3. Obtain the Titanic dataset
+
+Only the labeled [Kaggle Titanic `train.csv`](https://www.kaggle.com/competitions/titanic/data) is used. If `train.csv` is already next to `train.py`, **no download is necessary**.
+
+Otherwise, download `train.csv` from Kaggle and copy it to the repository root:
 
 ```text
-.
+titanic/
+├── train.csv
 ├── train.py
-├── train.csv                 # Local Kaggle file (not committed)
-└── ...
+└── ds_app.py
 ```
 
-Alternatively, after configuring Kaggle API credentials, download **only** `train.csv` through the training script using `--download`.
-
-### Run the notebook
+Alternatively, configure your Kaggle API credentials and fetch **only `train.csv`** with:
 
 ```bash
-jupyter lab notebooks/titanic_eda.ipynb
+python train.py --download --cv-folds 5 --cv-epochs 30 40 --device cpu
 ```
 
-The notebook can also run in **Google Colab**; if the CSV is not already available to its kernel, it prompts you to upload `train.csv`. Colab cannot read your laptop's `C:\Users\...` path directly.
+Do not use Kaggle's `test.csv` or `gender_submission.csv` for model evaluation. Training and validation rows are split from the labeled `train.csv`.
 
-### Train and evaluate the model
+### 4. Train and evaluate the PyTorch classifier
+
+**Recommended: 5-fold stratified cross-validation** on the development partition selects a feature configuration and epoch count:
 
 ```bash
 python train.py --cv-folds 5 --cv-epochs 30 40 --device cpu
 ```
 
-Training reserves 20% as a stratified validation partition, and runs cross-validation **only within the remaining 80%** to choose a feature set and epoch count. For a quick run without CV:
+For a quicker demonstration that skips cross-validation and trains on all engineered features for 40 epochs:
 
 ```bash
 python train.py --no-cv --epochs 40 --device cpu
 ```
 
-Other arguments include `--data-path`, `--output-dir`, `--seed`, `--batch-size`, `--learning-rate`, and `--device auto` for an available CUDA-capable GPU.
+You can use `--device auto` to select a CUDA GPU when a compatible CUDA-enabled PyTorch installation is available. Optional arguments include `--data-path`, `--output-dir`, `--batch-size`, `--learning-rate`, and `--seed`.
 
-### Start Streamlit
+The script creates `artifacts/` containing the trained weights and fitted preprocessing (`model.pt`, `preprocessor.joblib`, `model_config.json`), along with evaluation outputs. **Train before starting Streamlit** unless those exact compatible artifacts are already present.
+
+### 5. Run the Streamlit application
 
 ```bash
 python -m streamlit run ds_app.py
 ```
 
-The app reads the files in `artifacts/`, which are generated by `train.py`:
+Open the **Local URL** printed in your terminal (usually `http://localhost:8501`). Run Streamlit via the command above, **not** `python ds_app.py`.
 
-- `model.pt`, `preprocessor.joblib`, `model_config.json` — model and fitted transformations
-- `metrics.json`, `validation.csv`, `validation_predictions.csv`, `history.csv` — evaluation data
-- `cv_summary.csv`, `cv_per_fold.csv` — candidate results when CV is enabled
+In the sidebar, point the app to `artifacts/` if needed. You can select held-out validation, provide a local CSV path, or upload `data/example_inference.csv`. The dashboard displays survival probabilities, classification metrics (when the CSV includes `Survived`), plots, and downloadable predictions. The classification threshold can be changed from the sidebar.
 
-**In the dashboard:** choose **Held-out validation**, **Upload CSV**, or **Local CSV path**. Change the classification threshold from the sidebar (e.g. 0.40 / 0.50 / 0.60). Threshold changes alter predictions, accuracy, precision and recall, **not ROC AUC**. A CSV with `Survived` supports supervised evaluation; a CSV without it supports prediction only. Download predictions from the *Predictions & export* tab.
+### 6. Run the EDA notebook
+
+Open the notebook at the repository root:
+
+```bash
+jupyter lab titanic_eda.ipynb
+```
+
+If the Jupyter executable is not on your path, use `python -m jupyterlab` and open `titanic_eda.ipynb`. You may alternatively upload the notebook to **Google Colab** and upload the local `train.csv` through the notebook's file-upload prompt. Colab cannot access a Windows `C:\Users\...` path directly.
+
+### 7. Run automated tests
+
+```bash
+python -m pytest -q
+```
+
+### Troubleshooting
+
+- **`ModuleNotFoundError: No module named 'src'`** — confirm the `src/` folder is uploaded beside `train.py`, and run the commands from the repository root.
+- **Missing model artifacts in Streamlit** — run `train.py` first or select the correct `artifacts/` directory in the app.
+- **Streamlit `missing ScriptRunContext` warnings** — use `python -m streamlit run ds_app.py`, not the IDE's ordinary Python run button.
+- **Notebook can't find `train.csv`** — keep it beside the notebook locally or upload it to the Colab runtime when prompted.
 
 ## EDA: evidence behind the preprocessing
 
