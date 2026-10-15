@@ -1,0 +1,5 @@
+PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Fare,Embarked
+9001,1,"Example, Mrs. Alice",female,34,1,0,88.0,S
+9002,3,"Example, Mr. Bob",male,26,0,0,7.9,Q
+9003,2,"Example, Master. Charlie",male,8,1,1,25.0,C
+9004,3,"Example, Miss. Diana",female,,0,0,8.1,S
