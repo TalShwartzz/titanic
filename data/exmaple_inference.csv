@@ -1,0 +1,7 @@
+PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Fare,Embarked
+1001,1,"Smith, Mrs. Anna",female,35,1,0,83.5,S
+1002,3,"Brown, Mr. James",male,28,0,0,7.25,S
+1003,2,"Wilson, Miss. Emma",female,19,0,0,26.0,C
+1004,3,"Taylor, Mr. Robert",male,,0,0,8.05,Q
+1005,1,"Johnson, Master. David",male,8,1,2,120.0,S
+1006,2,"Davis, Mrs. Mary",female,42,1,1,30.0,S
