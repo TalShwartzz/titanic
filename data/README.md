@@ -1,8 +1,13 @@
-# Data policy
+# Data
 
-The only training/evaluation source is the official [Kaggle Titanic competition `train.csv`](https://www.kaggle.com/competitions/titanic/data).
+This project uses only Kaggle's [Titanic `train.csv`](https://www.kaggle.com/competitions/titanic/data), included in the repository root. Kaggle's `test.csv` and `gender_submission.csv` are not used.
 
-- `python train.py` downloads **only** `train.csv` via the Kaggle API into this folder.
-- `test.csv` and `gender_submission.csv` are not downloaded or used.
-- `example_inference.csv` is a **hand-authored illustrative inference file**, not sourced from Kaggle and not used for training or evaluation.
-- The real training file is excluded from git to keep the repository lightweight.
+**Training:**
+- `python train.py` — Use local data.
+- `python train.py --download` — Fetch from Kaggle (credentials required).
+
+**Sample data:**
+
+`data/example_inference.csv` contains synthetic passengers for testing Streamlit.
+
+Run `python -m streamlit run ds_app.py` and upload the sample CSV to generate predictions. Evaluation metrics require a `Survived` column.
