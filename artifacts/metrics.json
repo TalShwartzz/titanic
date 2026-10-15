@@ -1,0 +1,42 @@
+{
+  "pytorch_mlp": {
+    "accuracy": 0.8324022346368715,
+    "precision": 0.8545454545454545,
+    "recall": 0.6811594202898551,
+    "f1": 0.7580645161290323,
+    "confusion_matrix": [
+      [
+        102,
+        8
+      ],
+      [
+        22,
+        47
+      ]
+    ],
+    "support": 179,
+    "threshold": 0.5,
+    "roc_auc": 0.8766798418972332,
+    "average_precision": 0.8451134284057535
+  },
+  "logistic_regression": {
+    "accuracy": 0.8379888268156425,
+    "precision": 0.8571428571428571,
+    "recall": 0.6956521739130435,
+    "f1": 0.768,
+    "confusion_matrix": [
+      [
+        102,
+        8
+      ],
+      [
+        21,
+        48
+      ]
+    ],
+    "support": 179,
+    "threshold": 0.5,
+    "roc_auc": 0.8716732542819499,
+    "average_precision": 0.8448499095018902
+  }
+}

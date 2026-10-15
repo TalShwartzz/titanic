@@ -1,0 +1,58 @@
+{
+  "input_dim": 29,
+  "hidden_dims": [
+    32,
+    16
+  ],
+  "dropout": 0.15,
+  "input_columns": [
+    "Pclass",
+    "Sex",
+    "Age",
+    "SibSp",
+    "Parch",
+    "Fare",
+    "Embarked"
+  ],
+  "optional_columns": [
+    "Name",
+    "PassengerId",
+    "Survived"
+  ],
+  "feature_set": "all",
+  "numeric_features": [
+    "Age",
+    "SibSp",
+    "Parch",
+    "Fare",
+    "LogFare",
+    "FamilySize",
+    "IsAlone",
+    "FarePerPerson",
+    "AgeMissing"
+  ],
+  "categorical_features": [
+    "Pclass",
+    "Sex",
+    "Embarked",
+    "Title",
+    "SexPclass"
+  ],
+  "engineered_features_available": [
+    "LogFare",
+    "FamilySize",
+    "IsAlone",
+    "FarePerPerson",
+    "AgeMissing",
+    "Title",
+    "SexPclass"
+  ],
+  "threshold": 0.5,
+  "seed": 42,
+  "n_train": 712,
+  "n_validation": 179,
+  "source_sha256": "7d118fef8b6ccf7f81111877bc388536f7b1e498a655e3d649d19aaa010e9f6f",
+  "epochs": 40,
+  "validation_policy": "fixed stratified holdout; all selection within training-only CV",
+  "cv_folds": 5
+}
