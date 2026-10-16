@@ -19,7 +19,7 @@ An end-to-end binary classification project for the **[Kaggle Titanic competitio
 
 ### Project structure
 
-The repository root contains the training script, Streamlit app and EDA notebook. The training and dashboard scripts also require the `src/` Python package; check that it has been uploaded to GitHub.
+The repository root contains the training script, Streamlit app and EDA notebook. Training, preprocessing, evaluation, and inference are organized into reusable Python modules in src/.
 
 ```text
 .
@@ -236,7 +236,7 @@ Every CV fold fits its own imputer, scaler and one-hot encoder on **fold-trainin
 
 ## Model results
 
-**User-reported PyTorch 5-fold CV run** (original Titanic `train.csv`; 712 development rows, 179 validation rows):
+**PyTorch 5-fold cross-validation results** (original Titanic `train.csv`; 712 development rows, 179 validation rows):
 
 | PyTorch input set | 30 epochs: mean AUC ± SD | 40 epochs: mean AUC ± SD |
 | --- | ---: | ---: |
@@ -244,7 +244,7 @@ Every CV fold fits its own imputer, scaler and one-hot encoder on **fold-trainin
 | Title | 0.870 ± 0.022 | 0.871 ± 0.024 |
 | **All engineered** | **0.877 ± 0.024** | **0.878 ± 0.025** |
 
-The model-selection procedure chose **all engineered features, 40 epochs**. On the resulting validation partition, the user-reported comparison at threshold 0.50 was:
+The model-selection procedure chose **all engineered features, 40 epochs**. On the resulting validation partition, Held-out validation performance at a classification threshold of 0.50:
 
 | Model | Accuracy | Precision | Recall | F1 | ROC AUC |
 | --- | ---: | ---: | ---: | ---: | ---: |
