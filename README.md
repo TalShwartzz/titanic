@@ -128,7 +128,13 @@ python -m streamlit run ds_app.py
 
 Open the **Local URL** printed in your terminal (usually `http://localhost:8501`). Run Streamlit via the command above, **not** `python ds_app.py`.
 
-In the sidebar, point the app to `artifacts/` if needed. You can select held-out validation, provide a local CSV path, or upload `data/example_inference.csv`. The dashboard displays survival probabilities, classification metrics (when the CSV includes `Survived`), plots, and downloadable predictions. The classification threshold can be changed from the sidebar.
+In the sidebar, point the app to `artifacts/` if needed. You can select held-out validation, provide a local CSV path, or upload `data/example_inference.csv`.
+### Streamlit Dashboard
+
+The dashboard displays survival predictions and evaluation metrics,
+including a confusion matrix and ROC/PR curves.
+
+![Streamlit Evaluation](docs/streamlit/evaluation.png)
 
 ### 6. Run the EDA notebook
 
