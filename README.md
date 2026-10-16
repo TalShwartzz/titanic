@@ -131,10 +131,23 @@ Open the **Local URL** printed in your terminal (usually `http://localhost:8501`
 In the sidebar, point the app to `artifacts/` if needed. You can select held-out validation, provide a local CSV path, or upload `data/example_inference.csv`.
 ### Streamlit Dashboard
 
-The dashboard displays survival predictions and evaluation metrics,
-including a confusion matrix and ROC/PR curves.
+The application provides interactive survival predictions,
+classification metrics, confusion matrices, and ROC/PR curves.
 
-![Streamlit Evaluation](docs/streamlit/evaluation.png)
+**Held-out Validation (179 passengers)**
+
+Accuracy: 0.832 | ROC AUC: 0.877
+
+![Held-out Validation](docs/streamlit/evaluation.png)
+
+**Additional Evaluation Example (50 passengers)**
+
+Accuracy: 0.860 | ROC AUC: 0.939
+
+![Additional Evaluation](docs/streamlit/evaluation_subset.png)
+
+The second screenshot demonstrates evaluation on a smaller
+labeled CSV and is not an independent test of model generalization.
 
 ### 6. Run the EDA notebook
 
