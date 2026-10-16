@@ -167,10 +167,20 @@ def train(args):
     path = args.data_path.expanduser()
     if not path.is_absolute():
         path = ROOT / path
+    # if args.download:
+    #     path = download_train_csv(path, force=True)
+    # if not path.is_file():
+    #     raise FileNotFoundError(f"No train.csv at {path}. Copy it next to train.py or use --download")
     if args.download:
-        path = download_train_csv(path, force=True)
-    if not path.is_file():
-        raise FileNotFoundError(f"No train.csv at {path}. Copy it next to train.py or use --download")
+    print("Downloading Titanic training data from Kaggle...")
+    path = download_train_csv(path, force=True)
+
+    elif not path.is_file():
+        print(f"Training data not found at {path}.")
+        print("Attempting automatic download from Kaggle...")
+        path = download_train_csv(path)
+    
+    print(f"Using dataset: {path}")
     print(f"Loading Titanic training data from {path}")
     df = load_training_data(path)
     tr_idx, val_idx = train_test_split(
