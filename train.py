@@ -42,7 +42,7 @@ THRESHOLD = 0.50
 
 
 def parse_args(argv=None):
-    p = argparse.ArgumentParser(description="ELTA Titanic EDA-aligned PyTorch classifier")
+    p = argparse.ArgumentParser(description="Titanic EDA-aligned PyTorch classifier")
     p.add_argument("--data-path", type=Path, default=ROOT / "train.csv")
     p.add_argument("--download", action="store_true", help="Download only Kaggle train.csv")
     p.add_argument("--output-dir", type=Path, default=ROOT / "artifacts")
