@@ -172,8 +172,8 @@ def train(args):
     # if not path.is_file():
     #     raise FileNotFoundError(f"No train.csv at {path}. Copy it next to train.py or use --download")
     if args.download:
-    print("Downloading Titanic training data from Kaggle...")
-    path = download_train_csv(path, force=True)
+        print("Downloading Titanic training data from Kaggle...")
+        path = download_train_csv(path, force=True)
 
     elif not path.is_file():
         print(f"Training data not found at {path}.")
