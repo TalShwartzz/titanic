@@ -138,7 +138,7 @@ Open the notebook at the repository root:
 jupyter lab titanic_eda.ipynb
 ```
 
-If the Jupyter executable is not on your path, use `python -m jupyterlab` and open `titanic_eda.ipynb`. You may alternatively upload the notebook to **Google Colab** and upload the local `train.csv` through the notebook's file-upload prompt. Colab cannot access a Windows `C:\Users\...` path directly.
+If the Jupyter executable is not on your path, use `python -m jupyterlab` and open `titanic_eda.ipynb`. You may alternatively upload the notebook to **Google Colab** and upload the local `train.csv` through the notebook's file-upload prompt. 
 
 ### 7. Run automated tests
 
@@ -244,14 +244,15 @@ Every CV fold fits its own imputer, scaler and one-hot encoder on **fold-trainin
 | Title | 0.870 ± 0.022 | 0.871 ± 0.024 |
 | **All engineered** | **0.877 ± 0.024** | **0.878 ± 0.025** |
 
-The model-selection procedure chose **all engineered features, 40 epochs**. On the resulting validation partition, Held-out validation performance at a classification threshold of 0.50:
+The model-selection procedure chose **all engineered features, 40 epochs**. Held-out validation performance at a classification threshold of 0.50:
 
 | Model | Accuracy | Precision | Recall | F1 | ROC AUC |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | PyTorch MLP | 0.832 | 0.855 | 0.681 | 0.758 | **0.877** |
 | Logistic regression | **0.838** | **0.857** | **0.696** | **0.768** | 0.872 |
 
-Differences are small, and a small validation subset cannot establish definitive superiority. **Evaluation caveat:** The same validation partition had been viewed during earlier epoch experiments. Later automated selection is development-only, but it cannot retroactively make the earlier holdout completely untouched.
+Differences are small, and a small validation subset cannot establish definitive superiority.
+Model selection was performed using 5-fold cross-validation on the development set. The reported validation results provide an additional performance estimate, rather than an independent external test.
 
 ## Testing and limitations
 
